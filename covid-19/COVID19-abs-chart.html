@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>COVID-19 charts</title>
+<script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+<script type="text/javascript">
+    window.onload = function() {
+        $.get("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv", function(data) {
+            data=data.split(/\r?\n/);
+            datum=[];
+            chartdata1=[];
+            chartdata2=[];
+            chartdata3=[];
+            for(i=0; i<data.length; i++){
+                d=data[i].split(/,/);
+                try{
+                    if(d[1].match(/Country.Region/)){
+                        for(j=4;j<d.length;j++){
+                            datum.push(new Date(d[j]));
+                        }
+                    }
+                }
+                catch(err) {
+                    // do nothing;
+                }
+                if((d[0]+d[1]).match(/Germany|^France|^United Kingdom|^US|Japan|Korea|Czech|Italy|Spain|Austria|Switzerland|Hubei|Sweden/)){
+                    a1=[];
+                    a2=[];
+                    a3=[];
+                    name=d[1];
+                    if(d[0]) name=d[0];
+                    if(d[1].match(/Korea/)){
+                        name="South Korea";
+                        for(j=5;j<d.length;j++){
+                            a1.push({x: datum[j-5], y: parseInt(d[j])});
+                            if(j>=5+5)
+                                a2.push({x: datum[j-5], y: parseInt(d[j])-parseInt(d[j-7])});
+                            if(j>=5+1)
+                                a3.push({x: datum[j-5], y: parseInt(d[j])-parseInt(d[j-1])});
+                        }						
+                    } else {
+                        for(j=4;j<d.length;j++){
+                            a1.push({x: datum[j-4], y: parseInt(d[j])});
+                            if(j>=4+5)
+                                a2.push({x: datum[j-4], y: parseInt(d[j])-parseInt(d[j-7])});
+                            if(j>=4+1)
+                                a3.push({x: datum[j-4], y: parseInt(d[j])-parseInt(d[j-1])});
+                        }
+                    }
+                    
+                    chartdata1.push({
+                        name: name,
+                        type: "spline",
+                        showInLegend: true,
+                        dataPoints: a1
+                    });
+                    chartdata2.push({
+                        name: name,
+                        type: "spline",
+                        showInLegend: true,
+                        dataPoints: a2
+                    });
+                    chartdata3.push({
+                        name: name,
+                        type: "spline",
+                        showInLegend: true,
+                        dataPoints: a3
+                    });
+                }
+            }
+            
+            var chart1 = new CanvasJS.Chart("chartContainer1", {
+                title: {
+                     text: "COVID-19 Confirmed",
+                },
+                legend:{
+                    cursor:"pointer",
+                    itemmouseover: thickup,
+                    itemmouseout: thickdown,
+                    itemclick : toggleDataSeries
+                },
+
+                data: chartdata1
+            });
+            chart1.render();
+            
+            var chart2 = new CanvasJS.Chart("chartContainer2", {
+                title: {
+                     text: "COVID-19 Conf / 7 days difference",
+                },
+                legend:{
+                    cursor:"pointer",
+                    itemmouseover: thickup,
+                    itemmouseout: thickdown,
+                    itemclick : toggleDataSeries
+                },
+
+                data: chartdata2
+            });
+            chart2.render();
+
+            var chart3 = new CanvasJS.Chart("chartContainer3", {
+                title: {
+                     text: "COVID-19 Conf / 1 day difference",
+                },
+                legend:{
+                    cursor:"pointer",
+                    itemmouseover: thickup,
+                    itemmouseout: thickdown,
+                    itemclick : toggleDataSeries
+                },
+
+                data: chartdata3
+            });
+            chart3.render();
+
+            function toggleDataSeries(e) {
+				i=e.dataSeriesIndex;
+				d=chart3.data[i];
+				if (typeof(d.visible) === "undefined" || d.visible ){
+					chart1.data[i].set("visible",false);
+					chart2.data[i].set("visible",false);
+					chart3.data[i].set("visible",false);
+				} else {
+					chart1.data[i].set("visible",true);
+					chart2.data[i].set("visible",true);
+					chart3.data[i].set("visible",true);
+				}
+            }
+            
+            function thickup(e) {
+				i=e.dataSeriesIndex;
+				w = chart1.data[i].get("lineThickness");
+				chart1.data[i].set("lineThickness", 2*w);
+				chart2.data[i].set("lineThickness", 2*w);
+				chart3.data[i].set("lineThickness", 2*w);
+			}
+
+            function thickdown(e) {
+				i=e.dataSeriesIndex;
+				w = chart1.data[i].get("lineThickness");
+				chart1.data[i].set("lineThickness", w/2);
+				chart2.data[i].set("lineThickness", w/2);
+				chart3.data[i].set("lineThickness", w/2);
+			}
+
+        });
+        
+    }
+</script>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-E51DDFCTEH"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-E51DDFCTEH');
+</script>
+</head>
+<body>
+	<div style="font-family: Roboto,Arial,Helvetica,sans-serif;text-align:right;"><a href='COVID19-100k-chart.html'>Go to data per 100k</a></div>
+	<br />
+    <div id="chartContainer1" style="width:100%; height:400px;"></div>
+    <br /><br />
+    <div id="chartContainer2" style="width:100%; height:400px;"></div>
+    <br /><br />
+    <div id="chartContainer3" style="width:100%; height:400px;"></div>
+    <br /><br />
+    <div style="font-family: Roboto,Arial,Helvetica,sans-serif;text-align:right;">Data: <a href='https://github.com/CSSEGISandData/COVID-19'>https://github.com/CSSEGISandData/COVID-19</a></div>
+    <div style="font-family: Roboto,Arial,Helvetica,sans-serif;text-align:right;">Script: <a href='https://github.com/xbuloh/WebScripts'>https://github.com/xbuloh/WebScripts</a></div>
+</body>
+</html>
