@@ -1,1 +1,3 @@
-xbuloh.github.io
+xbuloh's web index
+
+[Násobilka](/school/M-nasobilka.html)
