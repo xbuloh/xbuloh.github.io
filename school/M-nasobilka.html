@@ -1,0 +1,206 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Násobilka</title>
+    <!-- https://www.w3schools.com/css/tryit.asp?filename=tryresponsive_col-s -->
+    <style>
+        * {
+          box-sizing: border-box;
+        }
+        
+        .row::after {
+          content: "";
+          clear: both;
+          display: table;
+        }
+        
+        [class*="col-"] {
+          float: left;
+          padding: 15px;
+        }
+        
+        html {
+          font-family: "Lucida Sans", sans-serif;
+        }
+        
+        .header {
+          background-color: hsl(0, 0%, 0%);
+          color: #ffffff;
+          padding: 15px;
+        }
+        
+        .aside {
+          background-color: #33b5e5;
+          padding: 15px;
+          color: #ffffff;
+          text-align: center;
+          font-size: 14px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+        
+        .footer {
+          background-color: #0099cc;
+          color: #ffffff;
+          text-align: center;
+          font-size: 12px;
+          padding: 15px;
+        }
+        
+        /* For mobile phones: */
+        [class*="col-"] {
+          width: 100%;
+        }
+        
+        @media only screen and (min-width: 600px) {
+          /* For tablets: */
+          .col-s-1 {width: 8.33%;}
+          .col-s-2 {width: 16.66%;}
+          .col-s-3 {width: 25%;}
+          .col-s-4 {width: 33.33%;}
+          .col-s-5 {width: 41.66%;}
+          .col-s-6 {width: 50%;}
+          .col-s-7 {width: 58.33%;}
+          .col-s-8 {width: 66.66%;}
+          .col-s-9 {width: 75%;}
+          .col-s-10 {width: 83.33%;}
+          .col-s-11 {width: 91.66%;}
+          .col-s-12 {width: 100%;}
+        }
+        @media only screen and (min-width: 768px) {
+          /* For desktop: */
+          .col-1 {width: 8.33%;}
+          .col-2 {width: 16.66%;}
+          .col-3 {width: 25%;}
+          .col-4 {width: 33.33%;}
+          .col-5 {width: 41.66%;}
+          .col-6 {width: 50%;}
+          .col-7 {width: 58.33%;}
+          .col-8 {width: 66.66%;}
+          .col-9 {width: 75%;}
+          .col-10 {width: 83.33%;}
+          .col-11 {width: 91.66%;}
+          .col-12 {width: 100%;}
+        }
+
+        .task, .task input {font: 25px Arial, sans-serif; padding: 10px; margin:10px;}
+        .task input {width:120px;}
+        .task span {width: 220px;}
+
+        .sel, .sel select {font: 18px Arial, sans-serif;padding: 10px; margin:10px;}
+
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Násobilka</h1>
+    </div>
+    <div class="row">
+        <div class="col-6 col-s-9 task">
+            <input id="ttask" type="text" disabled />
+            = <input id="iresult" type="number" />
+            <input id="bcheck" type="button" value="Kontrola" /> 
+            <input id="result" type="hidden" />
+        </div>
+
+        <div class="col-3 col-s-12 sel">
+            <div>
+                Násobilka:
+                <select id="sel" name="sel">
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="15">15</option>
+                    <option value="16">16</option>
+                    <option value="17">17</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                    <option value="20">20</option>
+                </select>
+            </div>
+            <div>
+                Status: 
+                <span id="statusok" style="color:green">0</span> / 
+                <span id="statusng" style="color:red">0</span>
+            </div>
+
+        </div>
+    </div>
+    <script>
+        sel = document.getElementById("sel");
+        bcheck = document.getElementById("bcheck");
+        ttask = document.getElementById("ttask");
+        iresult = document.getElementById("iresult");
+        result = document.getElementById("result");
+        status_ok=0;
+        status_ng=0;
+        r_history=[0];
+        r=0;
+        
+        function check(e){
+            if(result.value == iresult.value){
+                status_ok += 1;
+                document.getElementById("statusok").innerHTML=status_ok;
+                next();
+                iresult.value="";
+            } else if (iresult.value != "") {
+                status_ng += 1;
+                document.getElementById("statusng").innerHTML=status_ng;
+                iresult.value="";
+            }
+        }
+
+        bcheck.addEventListener("click", check, false);
+        iresult.addEventListener("keyup", function(e){
+            //bcheck.value=e.keyCode;
+            if ((e.keyCode === 0) || (e.keyCode === 13)) {check(e);}
+        }, false);
+
+        sel.addEventListener("change", function (e) {
+            next();
+            status_ok = 0;
+            document.getElementById("statusok").innerHTML=status_ok;
+            status_ng = 0;
+            document.getElementById("statusng").innerHTML=status_ng;
+        }, false);
+
+        function next() {
+            seli = parseInt(sel.value);
+            while(r_history.includes(r)){
+                r = Math.floor(Math.random() * 11);
+            } // get number other then numbers in history
+            r_history.push(r);
+            if(r_history.length>3) r_history.shift(); // history of 3 numbers
+            //console.log(r_history);
+            res = seli*r;
+            oper = Math.floor(Math.random() * 2);
+            if(oper){
+                order = Math.floor(Math.random() * 2);
+                if(order){
+                    ttask.value=seli+" * "+r;
+                } else {
+                    ttask.value=r+" * "+seli;
+                }
+                result.value = res;
+            } else {
+                ttask.value=res+" : "+seli;
+                result.value = r;
+            }
+            iresult.focus();
+        }
+
+        next();
+    </script>
+</body>
+</html>
