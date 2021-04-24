@@ -201,8 +201,8 @@
         }
 
         function summation(){
-            x = Math.floor(Math.random() * 100);
-            y = Math.floor(Math.random() * (100-x));
+            x = 2+ Math.floor(Math.random() * 96);      //  2   - 97
+            y = 2+ Math.floor(Math.random() * (97-x));  // 2-96 -  2
             oper = Math.floor(Math.random() * 2);
             if(oper){
                 ttask.value=x+" + "+y;
