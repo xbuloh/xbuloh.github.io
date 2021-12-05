@@ -86,6 +86,7 @@
 
         .row {font: 18px Arial, sans-serif;padding: 10px; margin:10px;}
         .row input {font: 25px Arial, sans-serif; padding: 10px; margin:10px;width:400px;}
+        .row select {font: 25px Arial, sans-serif; padding: 10px; margin:10px;width:400px;}
 
     </style>
 </head>
@@ -103,12 +104,18 @@
             <br /><br />
             Množina: <br />
             <input id="tset" type="text" value="asdfjkl; " /><br />
+            <select id="scount" name="scount">
+                <option value="3">3</option>
+                <option value="10" selected>10</option>
+                <option value="20">20</option>
+                <option value="30">30</option>
+            </select>
         </div>
 
         <div class="col-3 col-s-12 sel">
-            Status: 
-            <span id="statusok" style="color:green">0</span> / 
-            <span id="statusng" style="color:red">0</span>
+            Status: <br />
+            Zbývá <span id="statuslen" style="color:green">0</span> znaků.<br />
+            Čas: <span id="statustime" style="color:blue">NaN</span> sekund.
         </div>
     </div>
     <script>
@@ -116,17 +123,26 @@ ttext = document.getElementById("ttext");
 tin = document.getElementById("tin");
 breset = document.getElementById("breset");
 tset = document.getElementById("tset");
-
+scount = document.getElementById("scount");
+statuslen = document.getElementById("statuslen");
+statustime = document.getElementById("statustime");
+startTime = new Date();
 // ----------------------------------------------------------------
 
 tin.addEventListener("keyup", function(e){
-    ch = tin.value[0];
     text = ttext.value;
+    tintext = tin.value;
+    ch = tintext[0];
     if(ch == text[0]){
         ttext.value = text.substring(1, text.length);
     }
-    tin.value="";
-    if(ttext.value.length==0) generTtext();
+    tin.value=tintext.substring(1, text.length);;
+    statuslen.innerHTML = ttext.value.length;
+    if(ttext.value.length==0){
+        endTime = new Date();
+        statustime.innerHTML = ""+(endTime.getTime() - startTime.getTime()) / 1000;
+        breset.focus();
+    }
 }, false);
 
 // ----------------------------------------------------------------
@@ -136,7 +152,8 @@ function generTtext(){
     maxi = tset.value.length;
     tmp=""
     last=""
-    for(i=0;i<30;i++){
+    seli = parseInt(scount.value);
+    for(i=0;i<seli;i++){
         n="";
         while(n=="" || n==last)
             n = tset.value[Math.floor(Math.random() * maxi)];
@@ -145,11 +162,13 @@ function generTtext(){
     } 
     ttext.value = tmp;
     tin.value = "";
+    startTime = new Date();
     tin.focus();
 }
 generTtext();
 tset.addEventListener("keyup", generTtext);
 breset.addEventListener("click", generTtext);
+scount.addEventListener("change", generTtext);
 
     </script>
 </body>
