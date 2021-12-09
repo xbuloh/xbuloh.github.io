@@ -104,13 +104,22 @@
             <br /><br />
             Množina: <br />
             <input id="tset" type="text" value="asdfjkl;" /><br />
+            <select id="sset" name="sset">
+              <option value="asdf">asdf</option>
+              <option value="jkl;">jkl;</option>
+              <option value="asdfjkl;" selected>asdfjkl;</option>
+              <option value="asdfjkl;gh">asdfjkl;gh</option>
+              <option value="asdfjkl;ghqwertyuiop">asdfjkl;ghqwertyuiop</option>
+              <option value="asdfjkl;ghzxvbnm">asdfjkl;ghzxvbnm</option>
+              <option value="qwertyuiopasdfghjkl;zxcvbnm">qwertyuiopasdfghjkl;zxcvbnm</option>
+          </select>
             <select id="scount" name="scount">
                 <option value="3">3</option>
                 <option value="10" selected>10</option>
                 <option value="20">20</option>
                 <option value="30">30</option>
             </select>
-        </div>
+      </div>
 
         <div class="col-3 col-s-12 sel">
             Status: <br />
@@ -157,7 +166,7 @@ function generTtext(){
     seli = parseInt(scount.value);
     for(i=0;i<seli;i++){
         n="";
-        while(n=="" || n==last)
+        while(maxi > 1 && (n=="" || n==last))
             n = tset.value[Math.floor(Math.random() * maxi)];
         tmp += n;
         last = n;
@@ -169,9 +178,13 @@ function generTtext(){
     tin.focus();
 }
 generTtext();
-tset.addEventListener("keyup", generTtext);
+//tset.addEventListener("keyup", generTtext);
 breset.addEventListener("click", generTtext);
 scount.addEventListener("change", generTtext);
+sset.addEventListener("change", function(){
+    tset.value = sset.value;
+    generTtext();
+});
 
     </script>
 </body>
