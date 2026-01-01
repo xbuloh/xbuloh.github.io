@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Practice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .controls {
+            margin-bottom: 30px;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            width: 100%;
+        }
+        .problem {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .problem-text {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        input[type="number"] {
+            padding: 10px;
+            font-size: 18px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            width: 100px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .feedback {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .score {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 18px;
+            color: #333;
+        }
+        .timer {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        .timer.warning {
+            color: #ff6b35;
+        }
+        .game-over {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Math Practice</h1>
+        
+        <div class="controls">
+            <label for="problemType">Choose problem type:</label>
+            <select id="problemType" onchange="resetScore(); startTimer(); generateProblem()">
+                <option value="addition">Addition (numbers up to 20)</option>
+                <option value="subtraction">Subtraction (numbers up to 20)</option>
+                <option value="mixed">Mixed Addition & Subtraction (0-20)</option>
+                <option value="multiplication">Multiplication (numbers up to 5)</option>
+            </select>
+        </div>
+
+        <div class="timer">
+            <span>Time: <span id="timeLeft">60</span> seconds</span>
+        </div>
+
+        <div class="score">
+            <span>Score: <span id="correct">0</span> correct, <span id="total">0</span> total</span>
+        </div>
+
+        <div class="problem">
+            <div class="problem-text" id="problemText">Ready to start!</div>
+            <div>
+                <input type="number" id="answer" placeholder="?" disabled>
+            </div>
+            <div style="margin-top: 20px;">
+                <button onclick="checkAnswer()">Check Answer</button>
+            </div>
+        </div>
+
+        <div id="feedback" class="feedback" style="display: none;"></div>
+    </div>
+
+    <script>
+        let currentAnswer = 0;
+        let correctCount = 0;
+        let totalCount = 0;
+        let timeLeft = 60;
+        let timerInterval = null;
+        let gameActive = true;
+
+        function generateNumberWithReducedZero(max) {
+            const random = Math.random();
+            if (random < 0.025) {
+                return 0;
+            } else {
+                return Math.floor((random - 0.025) * (max / 0.975)) + 1;
+            }
+        }
+
+        function generateProblem() {
+            if (!gameActive) return;
+
+            const problemType = document.getElementById('problemType').value;
+            const answerInput = document.getElementById('answer');
+            const feedback = document.getElementById('feedback');
+
+            answerInput.disabled = false;
+            answerInput.value = '';
+            answerInput.focus();
+            feedback.style.display = 'none';
+            
+            let num1, num2, operator, problemText;
+            
+            if (problemType === 'addition') {
+                do {
+                    num1 = Math.floor(Math.random() * 20) + 1;
+                    num2 = Math.floor(Math.random() * 20) + 1;
+                } while (num1 + num2 > 20);
+                
+                currentAnswer = num1 + num2;
+                operator = '+';
+                problemText = `${num1} ${operator} ${num2} = `;
+            } else if (problemType === 'subtraction') {
+                do {
+                    num1 = Math.floor(Math.random() * 20) + 1;
+                    num2 = Math.floor(Math.random() * num1) + 1;
+                    currentAnswer = num1 - num2;
+                } while (currentAnswer === 0 && Math.random() < 0.5);
+
+                operator = '−';
+                problemText = `${num1} ${operator} ${num2} = `;
+            } else if (problemType === 'mixed') {
+                const isAddition = Math.random() < 0.5;
+
+                if (isAddition) {
+                    num1 = generateNumberWithReducedZero(20);
+                    num2 = generateNumberWithReducedZero(20 - num1);
+                    currentAnswer = num1 + num2;
+                    operator = '+';
+                } else {
+                    do {
+                        num1 = generateNumberWithReducedZero(20);
+                        num2 = generateNumberWithReducedZero(num1);
+                        currentAnswer = num1 - num2;
+                    } while (currentAnswer === 0 && Math.random() < 0.5);
+                    operator = '−';
+                }
+                
+                problemText = `${num1} ${operator} ${num2} = `;
+            } else if (problemType === 'multiplication') {
+                num1 = Math.floor(Math.random() * 5) + 1;
+                num2 = Math.floor(Math.random() * 5) + 1;
+                currentAnswer = num1 * num2;
+                operator = '×';
+                problemText = `${num1} ${operator} ${num2} = `;
+            }
+            
+            document.getElementById('problemText').textContent = problemText;
+        }
+
+        function checkAnswer() {
+            if (!gameActive) return;
+
+            const userAnswer = parseInt(document.getElementById('answer').value);
+            const feedback = document.getElementById('feedback');
+
+            if (isNaN(userAnswer)) {
+                feedback.textContent = 'Please enter a number!';
+                feedback.className = 'feedback incorrect';
+                feedback.style.display = 'block';
+                return;
+            }
+            
+            totalCount++;
+            
+            if (userAnswer === currentAnswer) {
+                correctCount++;
+                feedback.textContent = 'Correct! Well done!';
+                feedback.className = 'feedback correct';
+            } else {
+                feedback.textContent = `Incorrect. The correct answer is ${currentAnswer}.`;
+                feedback.className = 'feedback incorrect';
+            }
+            
+            feedback.style.display = 'block';
+            document.getElementById('answer').disabled = true;
+            updateScore();
+
+            pauseTimer();
+            setTimeout(() => {
+                resumeTimer();
+                generateProblem();
+            }, 2000);
+        }
+
+        function updateScore() {
+            document.getElementById('correct').textContent = correctCount;
+            document.getElementById('total').textContent = totalCount;
+        }
+
+        function resetScore() {
+            correctCount = 0;
+            totalCount = 0;
+            updateScore();
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timeLeft = 60;
+            gameActive = true;
+            document.getElementById('timeLeft').textContent = timeLeft;
+            document.querySelector('.timer').className = 'timer';
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timeLeft').textContent = timeLeft;
+
+                if (timeLeft <= 10) {
+                    document.querySelector('.timer').className = 'timer warning';
+                }
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function resumeTimer() {
+            if (gameActive && timeLeft > 0) {
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    document.getElementById('timeLeft').textContent = timeLeft;
+
+                    if (timeLeft <= 10) {
+                        document.querySelector('.timer').className = 'timer warning';
+                    }
+
+                    if (timeLeft <= 0) {
+                        endGame();
+                    }
+                }, 1000);
+            }
+        }
+
+        function endGame() {
+            gameActive = false;
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            document.getElementById('answer').disabled = true;
+            document.getElementById('feedback').style.display = 'none';
+
+            const gameOverDiv = document.createElement('div');
+            gameOverDiv.className = 'game-over';
+            gameOverDiv.innerHTML = `
+                <h3>Time's Up!</h3>
+                <p>Final Score: ${correctCount} correct out of ${totalCount} problems</p>
+                <p>Accuracy: ${totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0}%</p>
+                <p>Change problem type to play again!</p>
+            `;
+
+            const container = document.querySelector('.container');
+            const existingGameOver = container.querySelector('.game-over');
+            if (existingGameOver) {
+                existingGameOver.remove();
+            }
+            container.appendChild(gameOverDiv);
+        }
+
+        document.getElementById('answer').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        startTimer();
+        generateProblem();
+    </script>
+</body>
+</html>

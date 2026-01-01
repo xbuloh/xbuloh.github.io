@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>Pocitani prikladu 1-20</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root {
+            color-scheme: light dark;
+            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0 1.5rem 3rem;
+            background: radial-gradient(circle at top, #f3f7ff, #e7ecff);
+            min-height: 100vh;
+        }
+
+        main {
+            max-width: 28rem;
+            margin: 0 auto;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.88);
+            border-radius: 1.25rem;
+            box-shadow: 0 1.5rem 3rem rgba(66, 91, 169, 0.15);
+        }
+
+        h1 {
+            margin-top: 0;
+            text-align: center;
+            font-size: clamp(1.8rem, 4vw, 2.4rem);
+        }
+
+        form {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .problem {
+            font-size: clamp(1.6rem, 5vw, 2.2rem);
+            text-align: center;
+            font-weight: 600;
+        }
+
+        input[type="number"] {
+            font-size: 1.4rem;
+            text-align: center;
+            padding: 0.4rem;
+            border: 2px solid #b9c3f6;
+            border-radius: 0.75rem;
+        }
+
+        button {
+            font-size: 1.1rem;
+            padding: 0.6rem 1rem;
+            border-radius: 0.75rem;
+            border: none;
+            background: #4c6ef5;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        button:hover,
+        button:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 0.75rem 1.5rem rgba(76, 110, 245, 0.25);
+        }
+
+        fieldset {
+            border: 1px solid #c5cbe9;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem 1.25rem;
+        }
+
+        legend {
+            padding: 0 0.3rem;
+            font-weight: 600;
+        }
+
+        .timer {
+            margin-top: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            background: #dbe4ff;
+            font-weight: 600;
+            text-align: center;
+            letter-spacing: 0.02em;
+        }
+
+        .results {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            background: #eef1ff;
+            font-size: 0.95rem;
+        }
+
+        .history {
+            margin-top: 1.5rem;
+            max-height: 10rem;
+            overflow-y: auto;
+            border: 1px dashed #b9c3f6;
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .history h2 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1rem;
+        }
+
+        .history ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            gap: 0.4rem;
+        }
+
+        .history li {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+        }
+
+        .history li.correct {
+            color: #2a7f39;
+        }
+
+        .history li.wrong {
+            color: #c12b2b;
+        }
+
+        #restart-btn {
+            width: 100%;
+            margin: 0.5rem 0 1rem;
+            background: #3b5bdb;
+        }
+
+        #restart-btn:disabled {
+            opacity: 0.6;
+            cursor: default;
+            box-shadow: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: radial-gradient(circle at top, #1f2335, #151826);
+                color: #e9ecff;
+            }
+
+            main {
+                background: rgba(24, 28, 46, 0.92);
+            }
+
+            input[type="number"] {
+                background: #252a3f;
+                color: #e9ecff;
+                border-color: #4c6ef5;
+            }
+
+            fieldset {
+                border-color: #384064;
+            }
+
+            .results {
+                background: rgba(53, 61, 92, 0.9);
+            }
+
+            .timer {
+                background: rgba(66, 77, 116, 0.9);
+            }
+
+            .history {
+                border-color: #384064;
+                background: rgba(32, 37, 57, 0.9);
+            }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <h1>Pocitani 1-20</h1>
+    <form id="practice-form">
+        <button id="restart-btn" type="button">Nova hra (1 minuta)</button>
+        <div class="problem" id="problem"></div>
+        <label>
+            Tvoje odpoved:
+            <input type="number" id="answer" inputmode="numeric" autocomplete="off" required />
+        </label>
+        <button id="check-btn" type="submit">Zkontrolovat</button>
+        <button id="skip-btn" type="button">Preskocit priklad</button>
+        <div class="timer" role="status">Cas: <strong id="time-left">01:00</strong></div>
+        <div class="results">
+            <div>Spravne: <strong id="correct">0</strong></div>
+            <div>Spatne: <strong id="wrong">0</strong></div>
+            <div>Serie: <strong id="streak">0</strong></div>
+        </div>
+        <fieldset>
+            <legend>Operace</legend>
+            <label>
+                <input type="checkbox" name="operation" value="+" checked />
+                Scitani
+            </label><br />
+            <label>
+                <input type="checkbox" name="operation" value="-" checked />
+                Odcitani
+            </label><br />
+        <label>
+            <input type="checkbox" name="operation" value="*" />
+            Nasobeni
+        </label>
+    </fieldset>
+        <fieldset>
+            <legend>Obtiznost</legend>
+            <label>
+                <input type="radio" name="difficulty" value="easy" />
+                Snadna
+            </label><br />
+            <label>
+                <input type="radio" name="difficulty" value="medium" checked />
+                Stredni
+            </label><br />
+            <label>
+                <input type="radio" name="difficulty" value="hard" />
+                Tezka
+            </label>
+        </fieldset>
+    </form>
+    <section class="history" aria-live="polite">
+        <h2>Historie</h2>
+        <ul id="history-list"></ul>
+    </section>
+</main>
+<script>
+    const MIN = 1;
+    const MAX = 20;
+
+    const problemEl = document.getElementById('problem');
+    const answerEl = document.getElementById('answer');
+    const correctEl = document.getElementById('correct');
+    const wrongEl = document.getElementById('wrong');
+    const streakEl = document.getElementById('streak');
+    const historyList = document.getElementById('history-list');
+    const operationsForm = document.getElementById('practice-form');
+    const checkBtn = document.getElementById('check-btn');
+    const skipBtn = document.getElementById('skip-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const timeLeftEl = document.getElementById('time-left');
+    const difficultyInputs = operationsForm.querySelectorAll('input[name="difficulty"]');
+
+    const TIME_LIMIT_SECONDS = 60;
+    const state = {
+        correct: 0,
+        wrong: 0,
+        streak: 0,
+        current: null,
+        timerId: null,
+        deadline: null,
+        isActive: false
+    };
+
+    const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+    const formatTime = seconds => {
+        const safeSeconds = Math.max(0, seconds);
+        const mm = String(Math.floor(safeSeconds / 60)).padStart(2, '0');
+        const ss = String(safeSeconds % 60).padStart(2, '0');
+        return `${mm}:${ss}`;
+    };
+
+    const pickRandom = items => items[randomInt(0, items.length - 1)];
+
+    const difficultyPresets = {
+        easy: {
+            maxResult: 20,
+            preventCarry: true,
+            preventBorrow: true,
+            maxFactor: 10
+        },
+        medium: {
+            maxResult: 20,
+            preventCarry: false,
+            preventBorrow: false,
+            maxFactor: 20
+        },
+        hard: {
+            maxResult: 40,
+            preventCarry: false,
+            preventBorrow: false,
+            maxFactor: 20
+        }
+    };
+
+    const getDifficultySettings = () => {
+        const selected = operationsForm.querySelector('input[name="difficulty"]:checked');
+        return difficultyPresets[selected?.value] ?? difficultyPresets.medium;
+    };
+
+    const pickOperations = () => {
+        const choices = [...operationsForm.querySelectorAll('input[name="operation"]:checked')].map(el => el.value);
+        return choices.length ? choices : ['+'];
+    };
+
+    const setControlsEnabled = enabled => {
+        answerEl.disabled = !enabled;
+        checkBtn.disabled = !enabled;
+        skipBtn.disabled = !enabled;
+        operationsForm.querySelectorAll('input[name="operation"]').forEach(input => {
+            input.disabled = !enabled;
+        });
+        difficultyInputs.forEach(input => {
+            input.disabled = !enabled;
+        });
+    };
+
+    const makeProblem = () => {
+        if (!state.isActive) {
+            return;
+        }
+        const operations = pickOperations();
+        const difficulty = getDifficultySettings();
+        let displayed = null;
+
+        while (!displayed) {
+            const op = operations[Math.floor(Math.random() * operations.length)];
+
+            if (op === '+') {
+                const a = randomInt(MIN, MAX);
+                const maxB = Math.min(MAX, difficulty.maxResult - a);
+                if (maxB < MIN) {
+                    continue;
+                }
+                const options = [];
+                for (let candidate = MIN; candidate <= maxB; candidate += 1) {
+                    if (difficulty.preventCarry && (a % 10) + (candidate % 10) >= 10) {
+                        continue;
+                    }
+                    options.push(candidate);
+                }
+                if (!options.length) {
+                    continue;
+                }
+                const b = pickRandom(options);
+                displayed = { a, b, op, result: a + b };
+            } else if (op === '-') {
+                let a = randomInt(MIN, MAX);
+                const options = [];
+                for (let candidate = MIN; candidate <= a; candidate += 1) {
+                    const result = a - candidate;
+                    if (result < 0 || result > difficulty.maxResult) {
+                        continue;
+                    }
+                    if (difficulty.preventBorrow && (a % 10) < (candidate % 10)) {
+                        continue;
+                    }
+                    options.push(candidate);
+                }
+                if (!options.length) {
+                    continue;
+                }
+                const b = pickRandom(options);
+                const result = a - b;
+                displayed = { a, b, op, result };
+            } else if (op === '*') {
+                const operandLimit = Math.min(MAX, difficulty.maxFactor);
+                if (operandLimit < MIN) {
+                    continue;
+                }
+                const a = randomInt(MIN, operandLimit);
+                const maxB = Math.min(operandLimit, Math.floor(difficulty.maxResult / a));
+                if (maxB < MIN) {
+                    continue;
+                }
+                const b = randomInt(MIN, maxB);
+                displayed = { a, b, op, result: a * b };
+            } else {
+                const a = randomInt(MIN, MAX);
+                const maxB = Math.min(MAX, difficulty.maxResult - a);
+                if (maxB < MIN) {
+                    continue;
+                }
+                const b = randomInt(MIN, maxB);
+                displayed = { a, b, op: '+', result: a + b };
+            }
+        }
+
+        state.current = displayed;
+        problemEl.textContent = `${displayed.a} ${displayed.op} ${displayed.b} = ?`;
+        answerEl.value = '';
+        answerEl.focus();
+    };
+
+    const pushHistory = (item, isCorrect) => {
+        const li = document.createElement('li');
+        li.className = isCorrect ? 'correct' : 'wrong';
+        li.textContent = `${item.a} ${item.op} ${item.b} = ${item.result} (tvoje: ${item.given ?? '-'})`;
+        historyList.prepend(li);
+        while (historyList.children.length > 150) {
+            historyList.removeChild(historyList.lastChild);
+        }
+    };
+
+    const updateStats = () => {
+        correctEl.textContent = state.correct;
+        wrongEl.textContent = state.wrong;
+        streakEl.textContent = state.streak;
+    };
+
+    const endSession = () => {
+        if (!state.isActive) {
+            return;
+        }
+        state.isActive = false;
+        if (state.timerId) {
+            clearInterval(state.timerId);
+            state.timerId = null;
+        }
+        state.deadline = null;
+        timeLeftEl.textContent = '00:00';
+        problemEl.textContent = 'Cas vyprsel!';
+        setControlsEnabled(false);
+    };
+
+    const updateTime = () => {
+        if (!state.deadline) {
+            return;
+        }
+        const remainingMs = state.deadline - Date.now();
+        const remainingSeconds = Math.ceil(remainingMs / 1000);
+        timeLeftEl.textContent = formatTime(remainingSeconds);
+        if (remainingMs <= 0) {
+            endSession();
+        }
+    };
+
+    const startTimer = () => {
+        if (state.timerId) {
+            clearInterval(state.timerId);
+        }
+        state.deadline = Date.now() + TIME_LIMIT_SECONDS * 1000;
+        updateTime();
+        state.timerId = setInterval(updateTime, 250);
+    };
+
+    const resetHistory = () => {
+        historyList.innerHTML = '';
+    };
+
+    const startSession = () => {
+        if (state.timerId) {
+            clearInterval(state.timerId);
+            state.timerId = null;
+        }
+        state.correct = 0;
+        state.wrong = 0;
+        state.streak = 0;
+        state.current = null;
+        state.isActive = true;
+        updateStats();
+        resetHistory();
+        timeLeftEl.textContent = formatTime(TIME_LIMIT_SECONDS);
+        setControlsEnabled(true);
+        startTimer();
+        makeProblem();
+    };
+
+    operationsForm.addEventListener('submit', event => {
+        event.preventDefault();
+        if (!state.isActive) {
+            return;
+        }
+        if (!state.current) {
+            return;
+        }
+
+        const expected = state.current.result;
+        const given = Number(answerEl.value);
+
+        if (Number.isNaN(given) || answerEl.value.trim() === '') {
+            answerEl.focus();
+            return;
+        }
+
+        const isCorrect = given === expected;
+
+        if (isCorrect) {
+            state.correct += 1;
+            state.streak += 1;
+        } else {
+            state.wrong += 1;
+            state.streak = 0;
+        }
+
+        pushHistory({ ...state.current, given }, isCorrect);
+        updateStats();
+        makeProblem();
+    });
+
+    document.getElementById('skip-btn').addEventListener('click', () => {
+        if (!state.isActive) {
+            return;
+        }
+        if (state.current) {
+            pushHistory({ ...state.current, given: 'Preskoceno' }, false);
+            state.wrong += 1;
+            state.streak = 0;
+            updateStats();
+        }
+        makeProblem();
+    });
+
+    operationsForm.querySelectorAll('input[name="operation"]').forEach(input => {
+        input.addEventListener('change', () => {
+            if (!state.isActive) {
+                return;
+            }
+            makeProblem();
+        });
+    });
+
+    difficultyInputs.forEach(input => {
+        input.addEventListener('change', () => {
+            startSession();
+        });
+    });
+
+    restartBtn.addEventListener('click', () => {
+        startSession();
+    });
+
+    startSession();
+</script>
+</body>
+</html>
