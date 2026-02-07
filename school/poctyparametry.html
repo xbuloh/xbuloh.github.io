@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procvičování počítání</title>
+    <style>
+        :root {
+            --primary: #2196F3;
+            --success: #4CAF50;
+            --error: #F44336;
+            --bg: #f5f5f5;
+            --text: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h1 { margin-top: 0; font-size: 1.5rem; color: #555; }
+        
+        .problem-text {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 1.5rem 0;
+            word-wrap: break-word;
+        }
+
+        input[type="number"] {
+            font-size: 2rem;
+            padding: 10px;
+            width: 150px;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+            -moz-appearance: textfield;
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"]:focus {
+            border-color: var(--primary);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 300px;
+            transition: background 0.2s;
+        }
+        button:active { background-color: #1976D2; }
+
+        .stats {
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .result-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+        }
+        .correct { color: var(--success); }
+        .wrong { color: var(--error); }
+        
+        .config-help {
+            text-align: left;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 2rem;
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+        }
+        code {
+            background: #eee;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div id="app" class="container">
+    <div id="screen-config">
+        <h1>Nastavení příkladů</h1>
+        <p>Zadejte parametry do URL nebo použijte formulář níže.</p>
+        
+        <div style="text-align: left; margin-top: 20px;">
+            <label>Počet příkladů:</label><br>
+            <input type="number" id="cfg-count" value="10" style="width: 100%; font-size: 1rem;"><br><br>
+            
+            <label>Operace (SOU, ROZ, NAS, DEL):</label><br>
+            <input type="text" id="cfg-ops" value="SOUROZ" style="width: 100%; padding: 10px; font-size: 1rem;"><br><br>
+            
+            <label>Rozsahy operandů (jeden na řádek):</label><br>
+            <textarea id="cfg-ranges" rows="3" style="width: 100%; padding: 10px; font-size: 1rem;">+1+20
++1+20</textarea>
+            <small>Formát: +min+max (např. +1+99 nebo -5+5)</small>
+        </div>
+        
+        <button onclick="startFromConfig()">Spustit</button>
+        
+        <div class="config-help">
+            <p><strong>Příklad URL:</strong><br>
+            <code>?10xROZx+10+99x+1+9</code></p>
+        </div>
+    </div>
+
+    <div id="screen-game" class="hidden">
+        <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+        </div>
+        <div class="stats">Příklad <span id="current-num">1</span> z <span id="total-num">10</span></div>
+        
+        <div id="problem-display" class="problem-text"></div>
+        
+        <form onsubmit="handleAnswer(event)">
+            <input type="number" id="answer-input" placeholder="?" inputmode="numeric" autocomplete="off" required>
+            <button type="submit">Další</button>
+        </form>
+    </div>
+
+    <div id="screen-results" class="hidden">
+        <h1>Výsledky</h1>
+        <div style="font-size: 3rem; font-weight: bold; margin: 1rem 0;" id="final-score"></div>
+        <p>Čas: <span id="final-time"></span></p>
+        
+        <div id="mistakes-list" style="margin-top: 20px; max-height: 300px; overflow-y: auto;"></div>
+        
+        <button onclick="location.reload()">Znovu</button>
+    </div>
+</div>
+
+<script>
+    let config = {
+        count: 0,
+        ops: [],
+        ranges: []
+    };
+    let problems = [];
+    let currentProblemIndex = 0;
+    let startTime = 0;
+    let results = [];
+
+    const OpsMap = {
+        'SOU': '+',
+        'ROZ': '-',
+        'NAS': '*',
+        'DEL': '/'
+    };
+
+    function parseConfig(str) {
+        if (!str || str.length < 5) return false;
+        try {
+            let decoded = decodeURIComponent(str.replace(/\+/g, ' '));
+            const parts = decoded.split('x');
+            if (parts.length < 3) return false;
+
+            const newConfig = {
+                count: parseInt(parts[0], 10),
+                ops: [],
+                ranges: []
+            };
+            
+            if (isNaN(newConfig.count)) return false;
+
+            const rawOps = parts[1].toUpperCase();
+            if (rawOps.includes('SOU')) newConfig.ops.push('SOU');
+            if (rawOps.includes('ROZ')) newConfig.ops.push('ROZ');
+            if (rawOps.includes('NAS')) newConfig.ops.push('NAS');
+            if (rawOps.includes('DEL')) newConfig.ops.push('DEL');
+            
+            if (newConfig.ops.length === 0) return false;
+
+            for (let i = 2; i < parts.length; i++) {
+                const matches = parts[i].match(/[+-]?\d+/g);
+                if (!matches || matches.length !== 2) return false;
+                newConfig.ranges.push({
+                    min: parseInt(matches[0], 10),
+                    max: parseInt(matches[1], 10)
+                });
+            }
+
+            config = newConfig;
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function init() {
+        const search = window.location.search.substring(1);
+        const hash = window.location.hash.substring(1);
+        
+        const candidates = [search, hash];
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            for (const [key, value] of urlParams) {
+                candidates.push(key);
+                candidates.push(value);
+            }
+        } catch(e) {}
+
+        for (let candidate of candidates) {
+            if (candidate && candidate.includes('x') && parseConfig(candidate)) {
+                startGame();
+                return;
+            }
+        }
+    }
+
+    window.onload = init;
+
+    function startFromConfig() {
+        const count = document.getElementById('cfg-count').value;
+        const ops = document.getElementById('cfg-ops').value;
+        const rangesText = document.getElementById('cfg-ranges').value;
+        const ranges = rangesText.split('\n').map(r => r.trim()).filter(r => r).join('x');
+        const configStr = `${count}x${ops}x${ranges}`;
+        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + "?" + configStr;
+        window.history.pushState({path:newUrl},'',newUrl);
+        if (parseConfig(configStr)) startGame();
+        else alert("Chybný formát konfigurace.");
+    }
+
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function generateProblems() {
+        problems = [];
+        for (let i = 0; i < config.count; i++) {
+            const problem = { operands: [], operators: [], parts: [], text: "", result: 0 };
+            for (let r of config.ranges) {
+                problem.operands.push(getRandomInt(r.min, r.max));
+            }
+            for (let k = 0; k < problem.operands.length - 1; k++) {
+                const opKey = config.ops[Math.floor(Math.random() * config.ops.length)];
+                problem.operators.push(OpsMap[opKey]);
+            }
+            problem.parts = [problem.operands[0]];
+            for (let k=0; k < problem.operators.length; k++) {
+                problem.parts.push(problem.operators[k]);
+                problem.parts.push(problem.operands[k+1]);
+            }
+            problem.text = problem.parts.map(p => {
+                if (p === '/') return ':';
+                if (p === '*') return '·';
+                return p;
+            }).join(' ').replace(/ \- /g, ' – ');
+            problem.result = evaluateMath(problem.parts);
+            problems.push(problem);
+        }
+    }
+
+    function evaluateMath(tokens) {
+        let working = [...tokens];
+        for (let k = 0; k < working.length; k++) {
+            if (working[k] === '*' || working[k] === '/') {
+                const left = working[k-1], op = working[k], right = working[k+1];
+                let res = op === '*' ? left * right : (right === 0 ? 0 : Math.trunc(left / right));
+                working.splice(k-1, 3, res);
+                k--;
+            }
+        }
+        let result = working[0];
+        for (let k = 1; k < working.length; k+=2) {
+            const op = working[k], val = working[k+1];
+            if (op === '+') result += val;
+            if (op === '-') result -= val;
+        }
+        return result;
+    }
+
+    function startGame() {
+        generateProblems();
+        currentProblemIndex = 0;
+        results = [];
+        startTime = Date.now();
+        document.getElementById('screen-config').classList.add('hidden');
+        document.getElementById('screen-results').classList.add('hidden');
+        document.getElementById('screen-game').classList.remove('hidden');
+        document.getElementById('total-num').innerText = config.count;
+        showProblem();
+    }
+
+    function showProblem() {
+        const p = problems[currentProblemIndex];
+        document.getElementById('current-num').innerText = currentProblemIndex + 1;
+        document.getElementById('progress-fill').style.width = (currentProblemIndex / config.count) * 100 + '%';
+        document.getElementById('problem-display').innerText = p.text;
+        const input = document.getElementById('answer-input');
+        input.value = '';
+        input.focus();
+    }
+
+    function handleAnswer(e) {
+        e.preventDefault();
+        const input = document.getElementById('answer-input');
+        const userVal = parseInt(input.value, 10);
+        if (isNaN(userVal)) return;
+        const p = problems[currentProblemIndex];
+        const isCorrect = userVal === p.result;
+        results.push({ problem: p.text, correctResult: p.result, userResult: userVal, isCorrect: isCorrect });
+        const body = document.body;
+        body.style.backgroundColor = isCorrect ? "#e8f5e9" : "#ffebee";
+        setTimeout(() => body.style.backgroundColor = "var(--bg)", 200);
+        currentProblemIndex++;
+        if (currentProblemIndex < config.count) showProblem();
+        else finishGame();
+    }
+
+    function finishGame() {
+        const durationSeconds = Math.floor((Date.now() - startTime) / 1000);
+        const correctCount = results.filter(r => r.isCorrect).length;
+        const percentage = Math.round((correctCount / config.count) * 100);
+        document.getElementById('screen-game').classList.add('hidden');
+        document.getElementById('screen-results').classList.remove('hidden');
+        const scoreEl = document.getElementById('final-score');
+        scoreEl.innerText = `${percentage}%`;
+        scoreEl.style.color = percentage === 100 ? 'var(--success)' : (percentage < 50 ? 'var(--error)' : 'orange');
+        const minutes = Math.floor(durationSeconds / 60), seconds = durationSeconds % 60;
+        document.getElementById('final-time').innerText = (minutes > 0 ? `${minutes}m ` : '') + `${seconds}s`;
+        const list = document.getElementById('mistakes-list');
+        list.innerHTML = '';
+        results.forEach((res, idx) => {
+            const div = document.createElement('div');
+            div.className = 'result-item';
+            div.innerHTML = `<span><strong>${idx+1}.</strong> ${res.problem}</span><span>${res.isCorrect ? '<span class="correct">✓</span>' : `<span class="wrong">${res.userResult}</span> (správně: ${res.correctResult})`}</span>`;
+            list.appendChild(div);
+        });
+    }
+</script>
+</body>
+</html>
