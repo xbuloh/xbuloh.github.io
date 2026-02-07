@@ -1,3 +1,5 @@
+[Počítání param](/school/poctyparametry.html)
+
 [Počítání první](/school/math-practice.html)
 
 [Počítání Martin](/school/pocitani-martin.html)
